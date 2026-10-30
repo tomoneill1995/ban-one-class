@@ -1,0 +1,521 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>:root{color-scheme:light dark;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>Ban One Class</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a single reading column of findings, each with its chart, then the full deck ledger and the knobs. */
+:root {
+  --bg: #f6f7f8;
+  --surface: #fdfdfd;
+  --ink: #12161a;
+  --ink-2: #4a525b;
+  --muted: #858c94;
+  --grid: #e2e5e8;
+  --axis: #c2c8ce;
+  --line: rgba(18,22,26,0.10);
+  --accent: #2a78d6;      /* the ban world */
+  --accent-soft: #cde2fb;
+  --compare: #858c94;     /* the no-ban world */
+  --up: #006300;
+  --down: #c03030;
+  --gold: #a8720a;
+  --display: "Barlow Condensed", "Arial Narrow", system-ui, sans-serif;
+  --body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0f1215; --surface: #171b1f; --ink: #eef0f2; --ink-2: #b9c0c7; --muted: #868d95;
+  --grid: #262b30; --axis: #3a4047; --line: rgba(255,255,255,0.10);
+  --accent: #3987e5; --accent-soft: #1c3a5e; --compare: #868d95; --up: #2bb52b; --down: #e66767; --gold: #e0a83a;
+  color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #0f1215; --surface: #171b1f; --ink: #eef0f2; --ink-2: #b9c0c7; --muted: #868d95;
+  --grid: #262b30; --axis: #3a4047; --line: rgba(255,255,255,0.10);
+  --accent: #3987e5; --accent-soft: #1c3a5e; --compare: #868d95; --up: #2bb52b; --down: #e66767; --gold: #e0a83a;
+  color-scheme: dark; }
+body { background: var(--bg); color: var(--ink); font: 15px/1.55 var(--body); }
+.wrap { max-width: 980px; margin: 0 auto; padding-block: 40px 64px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: grid; gap: 40px; }
+h1, h2 { font-family: var(--display); font-weight: 700; letter-spacing: 0.01em; text-wrap: balance; margin: 0; line-height: 1.05; }
+h1 { font-size: clamp(40px, 7vw, 64px); text-transform: uppercase; }
+h2 { font-size: 28px; text-transform: uppercase; }
+p { margin: 0; max-width: 68ch; }
+.eyebrow { font: 500 12px/1 var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--gold); }
+header { display: grid; gap: 14px; }
+.lede { font-size: 17px; color: var(--ink-2); }
+.src { font: 12px/1.5 var(--mono); color: var(--muted); }
+section { display: grid; gap: 14px; }
+section > p { color: var(--ink-2); }
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+.tile { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 16px; display: grid; gap: 6px; align-content: start; }
+.tile .k { font: 500 11px/1.2 var(--mono); letter-spacing: 0.07em; text-transform: uppercase; color: var(--muted); }
+.tile .v { font: 700 34px/1 var(--display); display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.tile .v .from { font-size: 22px; color: var(--muted); font-weight: 600; }
+.tile .note { font-size: 13px; color: var(--ink-2); }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 16px; min-width: 0; }
+.legend { display: flex; gap: 18px; flex-wrap: wrap; font-size: 13px; color: var(--ink-2); align-items: center; }
+.sw { display: inline-block; width: 14px; height: 3px; border-radius: 2px; vertical-align: middle; margin-right: 6px; }
+.sw.box { height: 10px; width: 10px; border-radius: 2px; }
+svg text { fill: var(--muted); font: 11px var(--mono); }
+svg .lbl { fill: var(--ink); font: 13px var(--body); }
+svg .val { fill: var(--ink-2); font: 12px var(--mono); }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { font: 500 13px var(--body); border: 1px solid var(--line); background: var(--surface); color: var(--ink-2); border-radius: 999px; padding: 4px 11px; cursor: pointer; }
+.chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: #fff; }
+.chip:focus-visible, button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.tablebox { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 13.5px; min-width: 760px; }
+th { font: 500 11px/1.3 var(--mono); letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); text-align: right; padding: 8px 10px; border-bottom: 1px solid var(--axis); cursor: pointer; white-space: nowrap; user-select: none; }
+th:first-child, td:first-child, th.l, td.l { text-align: left; }
+th[aria-sort] { color: var(--ink); }
+td { padding: 7px 10px; border-bottom: 1px solid var(--grid); text-align: right; font-variant-numeric: tabular-nums; font-family: var(--mono); font-size: 12.5px; white-space: nowrap; }
+td.name { font-family: var(--body); font-size: 13.5px; font-weight: 500; }
+td .cls { color: var(--muted); font-weight: 400; font-size: 12px; margin-left: 6px; }
+.d-up { color: var(--up); } .d-down { color: var(--down); }
+.est { color: var(--muted); }
+.knobs { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 18px; }
+.knob { display: grid; gap: 6px; }
+.knob label { font-weight: 600; font-size: 14px; display: flex; justify-content: space-between; gap: 8px; }
+.knob label output { font: 500 13px var(--mono); color: var(--accent); }
+.knob small { color: var(--muted); font-size: 12.5px; line-height: 1.4; }
+input[type=range] { width: 100%; accent-color: var(--accent); }
+.row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+button.reset { font: 500 13px var(--body); background: transparent; color: var(--ink-2); border: 1px solid var(--line); border-radius: 4px; padding: 6px 12px; cursor: pointer; }
+.tip { position: fixed; pointer-events: none; background: var(--ink); color: var(--bg); font: 12px/1.45 var(--mono); padding: 7px 9px; border-radius: 4px; z-index: 20; max-width: 260px; }
+.notes { display: grid; gap: 10px; color: var(--ink-2); font-size: 14px; }
+.notes li { margin-bottom: 6px; max-width: 72ch; }
+.notes ul { margin: 0; padding-left: 18px; }
+.picker { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--bg); padding-block: 10px; display: grid; gap: 8px; border-bottom: 1px solid var(--line); }
+.pickrow { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.pickrow .eyebrow { width: 116px; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); }
+.small { font-size: 13px; color: var(--muted); }
+.tldr { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 18px 20px; }
+.tldr ul { margin: 0; padding-left: 18px; display: grid; gap: 10px; }
+.tldr li { max-width: 78ch; color: var(--ink-2); }
+.tldr li strong { color: var(--ink); }
+table.compact { min-width: 600px; }
+#metaTable td.names { font-family: var(--body); font-size: 12.5px; color: var(--ink-2); white-space: normal; text-align: left; min-width: 220px; }
+#metaTable td.big { font: 700 22px/1 var(--display); color: var(--ink); }
+#metaTable tr.sep td { border-top: 1px solid var(--axis); }
+#bracketTable tbody tr { cursor: pointer; }
+#bracketTable tbody tr:hover td { background: var(--accent-soft); }
+#bracketTable tr.cur td { font-weight: 600; color: var(--ink); }
+#bracketTable tr.cur td:first-child { box-shadow: inset 3px 0 0 var(--accent); }
+th { vertical-align: bottom; }
+.gloss { margin: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 10px 24px; }
+.gloss div { min-width: 0; }
+.gloss dt { font-weight: 600; font-size: 13.5px; }
+.gloss dd { margin: 2px 0 0; font-size: 13px; color: var(--ink-2); }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <span class="eyebrow">Hearthstone · thought experiment</span>
+    <h1>Ban One Class</h1>
+    <p class="lede">What if every ladder player could pick one class they never get matched against? This page replays the current meta under that rule, using real matchup win rates, and lets the population adapt until it settles.</p>
+    <p class="src" id="src"></p>
+  </header>
+
+  <section class="tldr">
+    <h2>TL;DR</h2>
+    <ul>
+      <li><strong>It reins in outlier decks.</strong> From Diamond 4 up, the most played deck loses a quarter to a third of its players (Zoo Warlock 24% → 17% in Legend, 30% → 19% in Top 1K) and its win rate drops 1–3 points. The gap between the best and worst deck shrinks, from 21 to 15.5 points in Legend.</li>
+      <li><strong>Banning your counter doesn't make a deck unbeatable.</strong> The biggest winners are weak decks finally dodging their worst matchup (Mill Rogue and Ayaya Rogue gain 6–7 points on day one in Legend). A mid-tier deck can use its ban to climb: C'Thun Warlock bans Warlock to skip Zoo and rises from 48.7% to about 53% in Top 1K. It ends up no stronger than Zoo is today, because everyone else has a ban too.</li>
+      <li><strong>More decks are viable, but popularity doesn't spread much.</strong> Decks at 50%+ win rate go up by 2–3 in Diamond 4 and above. The number of decks played by 5%+ stays about the same: Zoo's lost players spread across many mid-sized decks.</li>
+      <li><strong>You see the top deck far less often, but not more different decks.</strong> In Legend, Zoo falls from 24% of your games to 12%, and the three most common decks from 47% to 39%. Your own ban removes a whole class from your queue, so the number of different decks you meet stays about the same.</li>
+      <li><strong>The effect grows with rank.</strong> Platinum and Diamond 10–5 barely move, because those players don't chase win rate and ban less (25–31% ban Warlock). Top 1K players chase win rate hardest, so their meta shifts most. In a meta with no dominant deck (#359), the effect is small everywhere except Top 1K.</li>
+    </ul>
+    <p class="small">Figures are for the #360 snapshot at default settings unless stated. The rest of the page updates live when you change snapshot, bracket or knobs.</p>
+  </section>
+
+  <section class="picker">
+    <div class="pickrow"><span class="eyebrow">Meta snapshot</span><div class="chips" id="snapChips" role="group" aria-label="Meta snapshot"></div></div>
+    <div class="pickrow"><span class="eyebrow">Rank bracket</span><div class="chips" id="bracketChips" role="group" aria-label="Rank bracket"></div></div>
+  </section>
+
+  <section>
+    <div class="tiles" id="tiles"></div>
+  </section>
+
+  <section>
+    <h2>Meta decks · <span class="bname"></span></h2>
+    <p>How many archetypes actually matter, counted two ways: by how many people play them and by how well they win. Tiers here are win-rate bands against the field: Tier 1 is 53%+, Tier 2 is 50–53%, Tier 3 is 47–50%, Tier 4 is under 47%.</p>
+    <div class="panel tablebox"><table id="metaTable" class="compact"></table></div>
+  </section>
+
+  <section>
+    <h2>Brackets side by side</h2>
+    <p id="pickText"></p>
+    <div class="panel tablebox"><table id="bracketTable" class="compact"></table></div>
+    <p class="small">"Pull of +5% win rate" is how many times more often a deck gets played than an otherwise identical deck with 5 points lower win rate. Click a row to view that bracket.</p>
+  </section>
+
+  <section>
+    <h2>Who gets banned · <span class="bname"></span></h2>
+    <p id="banText"></p>
+    <div class="panel"><div class="legend"><span><span class="sw box" style="background:var(--accent)"></span>Settled ban meta</span><span><span class="sw box" style="background:var(--accent-soft)"></span>Day one (today's decks, bans allowed)</span></div><div id="banChart"></div></div>
+  </section>
+
+  <section>
+    <h2>Class share as the meta adapts · <span class="bname"></span></h2>
+    <p id="classText"></p>
+    <div class="chips" id="classChips" role="group" aria-label="Highlight a class"></div>
+    <div class="panel"><div class="legend"><span><span class="sw" style="background:var(--accent)"></span><span id="lgA">With bans</span></span><span><span class="sw" style="background:var(--compare)"></span><span id="lgB">Today</span></span><span style="color:var(--muted)">Grey lines: other classes with bans</span></div><div id="lineChart"></div></div>
+  </section>
+
+  <section>
+    <h2>Deck by deck · <span class="bname"></span></h2>
+    <dl class="gloss">
+      <div><dt>Play rate today</dt><dd>Share of games on this deck right now, from the vS data.</dd></div>
+      <div><dt>Play rate with bans</dt><dd>Share of games after players have had time to switch decks under the ban rule.</dd></div>
+      <div><dt>Win rate today</dt><dd>Current win rate against the whole field, no bans. From vS.</dd></div>
+      <div><dt>Win rate, bans day one</dt><dd>Same decks as today, but everyone now bans a class. Shows who gains or loses the instant bans arrive.</dd></div>
+      <div><dt>Win rate, bans adapted</dt><dd>Win rate once deck choices have also caught up with bans. Arrows compare to today.</dd></div>
+      <div><dt>What its players ban</dt><dd>The class this deck's players ban most often, and what share of them do.</dd></div>
+    </dl>
+    <div class="panel tablebox"><table id="deckTable"></table></div>
+    <p class="small">Click a column header to sort.</p>
+  </section>
+
+  <section>
+    <h2>Model knobs</h2>
+    <p>The results above recompute when you move these.</p>
+    <div class="panel knobs">
+      <div class="knob"><label for="kSavvy">Ban savviness <output id="oSavvy"></output></label><input type="range" id="kSavvy" min="1" max="12" step="0.5"><small>How much harder players optimise their ban than their deck, in the same bracket. Decks cost dust and practice; a ban is free to change, so the default is ×5. At ×1, bans are nearly random.</small></div>
+      <div class="knob"><label for="kLambda">Switching speed <output id="oLambda"></output></label><input type="range" id="kLambda" min="0.03" max="0.5" step="0.01"><small>Share of players who reconsider their deck each round. Changes the path, not where it ends up.</small></div>
+      <div class="knob"><label for="kSteps">Rounds <output id="oSteps"></output></label><input type="range" id="kSteps" min="10" max="300" step="10"><small>How long the population adapts.</small></div>
+    </div>
+    <div class="row"><button class="reset" id="reset" type="button">Reset to defaults</button></div>
+  </section>
+
+  <section>
+    <h2>How it works</h2>
+    <div class="notes">
+      <ul>
+        <li><strong>Snapshots.</strong> Each snapshot is one Vicious Syndicate Data Reaper report. #360 (Oct 21–26 2026) is the first week of Reign of the Black Empire, before the meta has settled. #359 (Sep 16–22 2026) is the last report before it, from the previous expansion's more established meta. Comparing them shows how much the ban effect depends on how lopsided the meta is.</li>
+        <li><strong>Matchups.</strong> Every head-to-head win rate between the most played archetypes, read from that report's All Ranks matchup chart. Fringe lists are left out. A pair vS didn't chart (under 100 games) is treated as 50/50.</li>
+        <li><strong>Per-bracket data.</strong> Each bracket's deck win rates and relative play rates come from the vS Power Rankings for that bracket. The All Ranks matchup grid is nudged per bracket (a strength offset per deck) so every deck's overall win rate matches what vS reports there. That stands in for better piloting and tighter lists at higher ranks.</li>
+        <li><strong>How picky each bracket is.</strong> Within a bracket, the model reads how much more a deck is played for each point of win rate (a log-linear fit of play rate on win rate). Everything else about a deck's popularity (cost, fun, familiarity) is held fixed as that deck's appeal. Without bans, the model reproduces today's meta exactly. With bans, win rates change, and each bracket reacts as strongly as its own data says it does.</li>
+        <li><strong>The ban rule.</strong> Each player picks one class before queueing. Two players are matched only if neither has banned the other's class. Banning your own class (skipping mirrors) is allowed. Players weigh bans by the win rate each would give them, with the same pickiness as their bracket (adjustable below).</li>
+        <li><strong>Left out.</strong> Deck tuning and new archetypes, queue times, and the balance patch vS expects. vS doesn't publish Bronze–Gold separately, so Platinum is the most casual bracket here. Treat the output as a direction, not a forecast.</li>
+      </ul>
+    </div>
+  </section>
+</div>
+<div class="tip" id="tip" hidden></div>
+
+<script>
+const DATA = {"snapshots":[{"id":"360","label":"#360 · Oct 21–26, Black Empire week 1","source":"Vicious Syndicate Data Reaper #360, Oct 21–26 2026","absent":[],"decks":[{"name":"Blood Death Knight","cls":"Death Knight"},{"name":"Handbuff Death Knight","cls":"Death Knight"},{"name":"C'Thun Demon Hunter","cls":"Demon Hunter"},{"name":"Mech Hunter","cls":"Hunter"},{"name":"Leyline Mage","cls":"Mage"},{"name":"Summoner Mage","cls":"Mage"},{"name":"Holy Paladin","cls":"Paladin"},{"name":"Pure Paladin","cls":"Paladin"},{"name":"Egg Priest","cls":"Priest"},{"name":"Thief Priest","cls":"Priest"},{"name":"Ayaya Rogue","cls":"Rogue"},{"name":"Mill Rogue","cls":"Rogue"},{"name":"Mug Shaman","cls":"Shaman"},{"name":"Zee Shaman","cls":"Shaman"},{"name":"C'Thun Warlock","cls":"Warlock"},{"name":"Rafaam Warlock","cls":"Warlock"},{"name":"Zoo Warlock","cls":"Warlock"},{"name":"Dragon Warrior","cls":"Warrior"},{"name":"Pirate Warrior","cls":"Warrior"}],"M":[[0.5,0.3849,0.4022,0.5296,0.4145,0.5027,0.4666,0.4951,0.2386,0.6541,0.3752,0.4254,0.4644,0.4409,0.3676,0.4818,0.3937,0.5684,0.5216],[0.6151,0.5,0.4969,0.6394,0.5639,0.5629,0.5249,0.5371,0.5072,0.5698,0.4913,0.5731,0.5456,0.4542,0.4704,0.5121,0.428,0.5727,0.5427],[0.5978,0.5031,0.5,0.6455,0.6417,0.5244,0.5422,0.6101,0.3995,0.4967,0.615,0.6552,0.5789,0.5027,0.4853,0.5374,0.4487,0.6608,0.6746],[0.4704,0.3606,0.3545,0.5,0.533,0.4753,0.4591,0.4418,0.3758,0.4836,0.4869,0.5481,0.4325,0.2983,0.4109,0.4595,0.2665,0.3564,0.3646],[0.5855,0.4361,0.3583,0.467,0.5,0.5235,0.481,0.4163,0.4954,0.6427,0.4092,0.5318,0.4502,0.2725,0.4706,0.556,0.1808,0.3375,0.3945],[0.4973,0.4371,0.4756,0.5247,0.4765,0.5,0.3792,0.437,0.3699,0.444,0.4775,0.5705,0.5296,0.3834,0.405,0.4467,0.2699,0.4313,0.4471],[0.5334,0.4751,0.4578,0.5409,0.519,0.6208,0.5,0.4956,0.3633,0.5301,0.4815,0.5943,0.5093,0.4579,0.4268,0.5238,0.353,0.5555,0.4827],[0.5049,0.4629,0.3899,0.5582,0.5837,0.563,0.5044,0.5,0.3754,0.4919,0.4949,0.624,0.4796,0.4151,0.4058,0.459,0.336,0.4792,0.4429],[0.7614,0.4928,0.6005,0.6242,0.5046,0.6301,0.6367,0.6246,0.5,0.4717,0.3947,0.4386,0.4022,0.5887,0.3959,0.2949,0.463,0.5859,0.6036],[0.3459,0.4302,0.5033,0.5164,0.3573,0.556,0.4699,0.5081,0.5283,0.5,0.4408,0.5079,0.4368,0.4443,0.4539,0.3418,0.561,0.5981,0.554],[0.6248,0.5087,0.385,0.5131,0.5908,0.5225,0.5185,0.5051,0.6053,0.5592,0.5,0.5889,0.461,0.3626,0.4677,0.4975,0.2199,0.3923,0.4644],[0.5746,0.4269,0.3448,0.4519,0.4682,0.4295,0.4057,0.376,0.5614,0.4921,0.4111,0.5,0.4113,0.2809,0.3257,0.3255,0.1585,0.2994,0.3788],[0.5356,0.4544,0.4211,0.5675,0.5498,0.4704,0.4907,0.5204,0.5978,0.5632,0.539,0.5887,0.5,0.4368,0.4081,0.4304,0.4138,0.5437,0.5303],[0.5591,0.5458,0.4973,0.7017,0.7275,0.6166,0.5421,0.5849,0.4113,0.5557,0.6374,0.7191,0.5632,0.5,0.5443,0.5266,0.4913,0.5964,0.6211],[0.6324,0.5296,0.5147,0.5891,0.5294,0.595,0.5732,0.5942,0.6041,0.5461,0.5323,0.6743,0.5919,0.4557,0.5,0.5557,0.3385,0.5306,0.4933],[0.5182,0.4879,0.4626,0.5405,0.444,0.5533,0.4762,0.541,0.7051,0.6582,0.5025,0.6745,0.5696,0.4734,0.4443,0.5,0.4315,0.4805,0.4824],[0.6063,0.572,0.5513,0.7335,0.8192,0.7301,0.647,0.664,0.537,0.439,0.7801,0.8415,0.5862,0.5087,0.6615,0.5685,0.5,0.5464,0.5767],[0.4316,0.4273,0.3392,0.6436,0.6625,0.5687,0.4445,0.5208,0.4141,0.4019,0.6077,0.7006,0.4563,0.4036,0.4694,0.5195,0.4536,0.5,0.533],[0.4784,0.4573,0.3254,0.6354,0.6055,0.5529,0.5173,0.5571,0.3964,0.446,0.5356,0.6212,0.4697,0.3789,0.5067,0.5176,0.4233,0.467,0.5]],"brackets":[{"name":"Platinum","wr":[46.24,52.69,55.16,41.13,42.72,43.55,47.79,46.35,52.78,50.19,46.82,38.81,50.27,56.97,53.28,52.64,61.24,48.97,48.68],"freq":[35.1,32.6,60.5,12,6.1,8.6,8.2,22.4,27.3,30,38.9,13.7,9.2,33.7,63.2,12.5,100,17.3,16.1]},{"name":"Diamond 10–5","wr":[45.05,52.71,54.68,41.63,44,44.32,49.1,46.95,51.77,48.46,48.3,39.5,51.47,56.76,54.02,52.69,61.11,48.36,48.68],"freq":[48.8,41.4,63.6,14.3,11.5,12.9,10,24.3,37.8,34.2,42,23.3,8.3,40.1,69.8,19.7,100,17.6,15.9]},{"name":"Diamond 4–1","wr":[42.31,50.83,51.71,39.11,40.65,42.87,46.96,43.81,50.64,48.76,44.67,36.51,49.24,54.13,50.7,51.03,58.35,46.72,46.72],"freq":[24,27.4,50.2,4.7,5.2,5.6,4.4,10.8,26.2,15.8,24.1,7.9,6.3,30,44.3,10.5,100,9,7.4]},{"name":"Legend","wr":[42.14,50.94,50.36,38.98,40.85,43.57,47.84,43.62,50.71,48.88,45.05,36.68,49.07,52.91,51.41,52.19,57.61,45.74,46.05],"freq":[24,43,56.1,4.1,4.3,6.1,4.4,8.5,30,16,22.6,8,9.5,28.3,36,6.7,100,7.8,5.7]},{"name":"Top 1K Legend","wr":[38.86,51.97,47.93,36.44,37.52,41.27,46.14,42.18,50.64,50.9,43.78,34.64,47.76,51.53,48.93,50.48,53.27,47.82,44.54],"freq":[9.3,67.1,47.1,0.8,0.3,2.9,1.1,4.1,20.9,9.1,9.2,2.1,10.7,23.2,20.8,1.1,100,3.4,1.7]}]},{"id":"359","label":"#359 · Sep 16–22, previous expansion","source":"Vicious Syndicate Data Reaper #359, Sep 16–22 2026","absent":[],"decks":[{"name":"Egg Death Knight","cls":"Death Knight"},{"name":"Herald Death Knight","cls":"Death Knight"},{"name":"Unholy Death Knight","cls":"Death Knight"},{"name":"Raza Demon Hunter","cls":"Demon Hunter"},{"name":"Void Demon Hunter","cls":"Demon Hunter"},{"name":"Attack Druid","cls":"Druid"},{"name":"Burn Mage","cls":"Mage"},{"name":"Leyline Mage","cls":"Mage"},{"name":"Pure Paladin","cls":"Paladin"},{"name":"Control Priest","cls":"Priest"},{"name":"Quest Priest","cls":"Priest"},{"name":"Thief Priest","cls":"Priest"},{"name":"Ayaya Rogue","cls":"Rogue"},{"name":"Herald Rogue","cls":"Rogue"},{"name":"Herald Shaman","cls":"Shaman"},{"name":"Mug Shaman","cls":"Shaman"},{"name":"Zee Shaman","cls":"Shaman"},{"name":"Drake Warlock","cls":"Warlock"},{"name":"Herald Warlock","cls":"Warlock"},{"name":"Pig Warlock","cls":"Warlock"},{"name":"Rafaam Warlock","cls":"Warlock"},{"name":"Dragon Warrior","cls":"Warrior"},{"name":"Pirate Warrior","cls":"Warrior"}],"M":[[0.5,0.6255,0.4781,0.4882,0.4191,0.4495,0.5069,0.4787,0.48,0.5181,0.5078,0.4336,0.5112,0.4732,0.4327,0.4414,0.4708,0.2648,0.2174,0.3614,0.3282,0.5622,0.6349],[0.3745,0.5,0.4459,0.5333,0.4322,0.329,0.4517,0.3384,0.4099,0.5033,0.3224,0.5286,0.4991,0.4386,0.4933,0.4795,0.4084,0.4733,0.3764,0.4735,0.4167,0.4697,0.4334],[0.5219,0.5541,0.5,0.6115,0.4591,0.4997,0.5613,0.639,0.4776,0.5496,0.4009,0.3909,0.6355,0.4997,0.5531,0.4361,0.4947,0.5092,0.5354,0.5477,0.4709,0.4966,0.5834],[0.5118,0.4667,0.3885,0.5,0.43,0.3314,0.3593,0.287,0.3718,0.5223,0.3897,0.5794,0.409,0.4651,0.536,0.4386,0.4314,0.502,0.341,0.4492,0.423,0.3516,0.3857],[0.5809,0.5678,0.5409,0.57,0.5,0.4744,0.4443,0.6026,0.4917,0.5437,0.4755,0.4847,0.6502,0.5036,0.6084,0.474,0.4999,0.5749,0.6208,0.5899,0.5233,0.3953,0.4521],[0.5505,0.671,0.5003,0.6686,0.5256,0.5,0.6054,0.6351,0.4823,0.6336,0.5034,0.5302,0.5999,0.5059,0.5819,0.5451,0.4287,0.5821,0.5538,0.6253,0.576,0.4907,0.5747],[0.4931,0.5483,0.4387,0.6407,0.5557,0.3946,0.5,0.6433,0.4881,0.4741,0.4355,0.3883,0.6586,0.6305,0.5686,0.4846,0.5222,0.6448,0.6977,0.61,0.579,0.3407,0.4129],[0.5213,0.6616,0.361,0.713,0.3974,0.3649,0.3567,0.5,0.3564,0.6682,0.5238,0.6924,0.5373,0.51,0.5671,0.4646,0.3246,0.6121,0.5841,0.5148,0.6133,0.2734,0.2983],[0.52,0.5901,0.5224,0.6282,0.5083,0.5177,0.5119,0.6436,0.5,0.5096,0.3957,0.4754,0.6572,0.5324,0.566,0.457,0.5536,0.511,0.4999,0.5432,0.4528,0.4565,0.4278],[0.4819,0.4967,0.4504,0.4777,0.4563,0.3664,0.5259,0.3318,0.4904,0.5,0.4194,0.5016,0.4979,0.4399,0.379,0.4631,0.4832,0.2767,0.4037,0.4005,0.3872,0.4969,0.3781],[0.4922,0.6776,0.5991,0.6103,0.5245,0.4966,0.5645,0.4762,0.6043,0.5806,0.5,0.5247,0.5228,0.4828,0.4813,0.4217,0.6214,0.2525,0.2825,0.3694,0.3381,0.5661,0.4574],[0.5664,0.4714,0.6091,0.4206,0.5153,0.4698,0.6117,0.3076,0.5246,0.4984,0.4753,0.5,0.5347,0.4539,0.3825,0.5166,0.4669,0.3105,0.4279,0.4373,0.2968,0.6336,0.5843],[0.4888,0.5009,0.3645,0.591,0.3498,0.4001,0.3414,0.4627,0.3428,0.5021,0.4772,0.4653,0.5,0.387,0.4455,0.4623,0.3182,0.5588,0.5048,0.4708,0.4228,0.295,0.3401],[0.5268,0.5614,0.5003,0.5349,0.4964,0.4941,0.3695,0.49,0.4676,0.5601,0.5172,0.5461,0.613,0.5,0.5446,0.4858,0.4372,0.5261,0.5475,0.5183,0.5089,0.3253,0.2921],[0.5673,0.5067,0.4469,0.464,0.3916,0.4181,0.4314,0.4329,0.434,0.621,0.5187,0.6175,0.5545,0.4554,0.5,0.5005,0.3752,0.4929,0.5114,0.4772,0.5301,0.3697,0.4106],[0.5586,0.5205,0.5639,0.5614,0.526,0.4549,0.5154,0.5354,0.543,0.5369,0.5783,0.4834,0.5377,0.5142,0.4995,0.5,0.4989,0.4646,0.463,0.5539,0.3974,0.5356,0.5984],[0.5292,0.5916,0.5053,0.5686,0.5001,0.5713,0.4778,0.6754,0.4464,0.5168,0.3786,0.5331,0.6818,0.5628,0.6248,0.5011,0.5,0.6056,0.646,0.5939,0.5339,0.4254,0.4362],[0.7352,0.5267,0.4908,0.498,0.4251,0.4179,0.3552,0.3879,0.489,0.7233,0.7475,0.6895,0.4412,0.4739,0.5071,0.5354,0.3944,0.5,0.5505,0.3758,0.6399,0.2974,0.271],[0.7826,0.6236,0.4646,0.659,0.3792,0.4462,0.3023,0.4159,0.5001,0.5963,0.7175,0.5721,0.4952,0.4525,0.4886,0.537,0.354,0.4495,0.5,0.4181,0.5335,0.234,0.167],[0.6386,0.5265,0.4523,0.5508,0.4101,0.3747,0.39,0.4852,0.4568,0.5995,0.6306,0.5627,0.5292,0.4817,0.5228,0.4461,0.4061,0.6242,0.5819,0.5,0.6024,0.2874,0.2484],[0.6718,0.5833,0.5291,0.577,0.4767,0.424,0.421,0.3867,0.5472,0.6128,0.6619,0.7032,0.5772,0.4911,0.4699,0.6026,0.4661,0.3601,0.4665,0.3976,0.5,0.41,0.3379],[0.4378,0.5303,0.5034,0.6484,0.6047,0.5093,0.6593,0.7266,0.5435,0.5031,0.4339,0.3664,0.705,0.6747,0.6303,0.4644,0.5746,0.7026,0.766,0.7126,0.59,0.5,0.5836],[0.3651,0.5666,0.4166,0.6143,0.5479,0.4253,0.5871,0.7017,0.5722,0.6219,0.5426,0.4157,0.6599,0.7079,0.5894,0.4016,0.5638,0.729,0.833,0.7516,0.6621,0.4164,0.5]],"brackets":[{"name":"Platinum","wr":[47.57,44.81,51.58,42.32,52.38,55.8,50.32,48.62,51.74,46.31,52.92,51.21,42.35,49.78,49.29,51.29,53.43,51.04,47.34,47.5,52.54,57.58,56.59],"freq":[6.4,13.5,18.5,4.8,21.3,59.5,10.1,19,20.9,52.9,62.3,29.6,12.3,34.9,13.3,7.6,21.5,12.7,24.6,15.9,43.9,100,30]},{"name":"Diamond 10–5","wr":[48.14,44.09,51.96,44.99,52.31,56.3,50.72,49.83,51.01,45.36,51.49,49.26,42.7,50.06,51.27,51.93,53.48,52.43,48.44,49.08,52.05,57.24,57.65],"freq":[6.7,19.8,20.8,4.8,22.8,63.4,10.5,30,22.3,88.3,77.2,39.1,17.3,42.4,11,7.8,22,16.8,29.7,20.8,63.6,100,34]},{"name":"Diamond 4–1","wr":[48.67,41.73,53.17,45.35,50.68,55,49.33,46.99,49.09,43.69,49.37,47.92,42.89,48.22,49.75,52.17,51.81,49.93,45.97,47.91,47.99,56.17,56.38],"freq":[4,12.4,10.6,2.7,15.6,72.8,7.9,30.3,13.7,51.2,63.5,23.7,9.7,31.7,9.1,7.2,18,15.1,25.5,21.2,47,100,29.7]},{"name":"Legend","wr":[48.66,41.32,51.48,46.54,50.16,53.33,48.62,46.02,47.97,44.76,49.14,49.24,44.76,47.81,48.82,51.8,50.7,49.46,46.96,46.75,46.88,55.11,54.52],"freq":[7,9,7.5,3.8,12,100,4.8,20.2,8.2,29.2,48.8,23.5,9.5,35.1,6.2,11.5,12.8,11,20.1,27.9,21,91,16.3]},{"name":"Top 1K Legend","wr":[51.6,41.89,49.17,49.4,47.98,50.93,46.24,43.77,45.31,47.37,48.59,51.61,48.68,46.45,47.3,52.06,48.66,48.48,47.38,47.19,44.77,52.37,50.22],"freq":[10.2,2,2,8.8,4.8,98.4,2.2,1.4,1.8,11.1,28.3,21,9,19.8,0.9,29.7,4,7.9,15,18.6,3.3,100,4.5]}]}]};
+// Ban-phase meta model, calibrated per rank bracket.
+// Deck choice is a logit: share_i ∝ exp(appeal_i + beta * winrate_i). beta (how hard a
+// bracket chases win rate) is fitted from how strongly play rate tracks win rate in that
+// bracket today, and appeal_i is set so today's meta is exactly reproduced without bans.
+// A strategy is (deck, banned class); two players meet only if neither banned the other's class.
+const logit = p => Math.log(p / (1 - p));
+const sigm = x => 1 / (1 + Math.exp(-x));
+const norm = a => { const s = a.reduce((x, y) => x + y, 0); return a.map(v => v / s); };
+
+// Field win rate of each deck given shares f and matrix M (no bans).
+function fieldWR(M, f) {
+  return M.map(row => row.reduce((s, v, j) => s + v * f[j], 0));
+}
+
+// Shift the base matchup matrix in log-odds by per-deck strength so each deck's field
+// win rate matches the bracket's reported win rate (captures pilot skill and list tuning).
+function calibrateMatrix(M0, f, target) {
+  const n = M0.length, L0 = M0.map(r => r.map(logit));
+  let s = Array(n).fill(0), M = M0;
+  for (let it = 0; it < 400; it++) {
+    M = L0.map((r, i) => r.map((v, j) => i === j ? 0.5 : sigm(v + s[i] - s[j])));
+    const w = fieldWR(M, f);
+    let err = 0;
+    s = s.map((v, i) => { if (target[i] == null) return v; const d = logit(target[i]) - logit(w[i]); err = Math.max(err, Math.abs(d)); return v + 0.8 * d; });
+    if (err < 1e-6) break;
+  }
+  return M;
+}
+
+// Weighted least squares slope of log(share) on win rate: the bracket's "pickiness".
+function fitBeta(f, w) {
+  const x = w, y = f.map(v => Math.log(v)), wt = f.map(v => Math.sqrt(v));
+  const W = wt.reduce((a, b) => a + b, 0);
+  const mx = x.reduce((a, v, i) => a + v * wt[i], 0) / W, my = y.reduce((a, v, i) => a + v * wt[i], 0) / W;
+  let num = 0, den = 0;
+  x.forEach((v, i) => { num += wt[i] * (v - mx) * (y[i] - my); den += wt[i] * (v - mx) ** 2; });
+  return num / den;
+}
+
+function prepareBracket(D, b) {
+  const f = norm(b.freq), target = b.wr.map(v => v == null ? null : v / 100);
+  const M = calibrateMatrix(D.M, f, target);
+  const w = fieldWR(M, f);
+  const known = target.map((t, i) => t != null);
+  const beta = fitBeta(f.filter((_, i) => known[i]), target.filter((_, i) => known[i]));
+  const appeal = f.map((v, i) => Math.log(v) - beta * w[i]);
+  return { name: b.name, f, M, beta, appeal, wr: w };
+}
+
+function simulate(D, B, opt) {
+  const { decks } = D, { M, beta, appeal, f } = B;
+  const n = decks.length;
+  const classes = [...new Set(decks.map(d => d.cls))];
+  const C = classes.length;
+  const ci = decks.map(d => classes.indexOf(d.cls));
+  const { steps = 120, lambda = 0.15, banSavvy = 1, bans = true } = opt;
+  const bBan = beta * banSavvy;
+  let y = f.slice();
+  let p = decks.map(() => Array(C).fill(1 / C));
+
+  function wrTable(y, p) {
+    return decks.map((_, i) => classes.map((_, b) => {
+      if (!bans) b = -1;
+      let num = 0, den = 0;
+      for (let j = 0; j < n; j++) {
+        if (ci[j] === b) continue;
+        const w = y[j] * (bans ? 1 - p[j][ci[i]] : 1);
+        num += w * M[i][j]; den += w;
+      }
+      return den > 0 ? num / den : 0.5;
+    }));
+  }
+  const banTarget = wr => wr.map(row => { const m = Math.max(...row); return norm(row.map(v => Math.exp(bBan * (v - m)))); });
+  function snapshot(y, p, wr) {
+    const deckWR = wr.map((row, i) => bans ? row.reduce((s, v, b) => s + v * p[i][b], 0) : row[0]);
+    const classShare = classes.map((_, c) => y.reduce((s, v, i) => s + (ci[i] === c ? v : 0), 0));
+    const banShare = classes.map((_, c) => bans ? y.reduce((s, v, i) => s + v * p[i][c], 0) : 0);
+    const topBan = p.map(row => { let m = 0; row.forEach((v, b) => { if (v > row[m]) m = b; }); return { cls: classes[m], p: row[m] }; });
+    // What a typical player actually faces: their opponent mix after both sides' bans.
+    let oppEff = 0;
+    const oppShare = y.map(() => 0);
+    y.forEach((yi, i) => (bans ? p[i] : [1]).forEach((pb, b) => {
+      const q = y.map((yj, j) => (bans && ci[j] === b) ? 0 : yj * (bans ? 1 - p[j][ci[i]] : 1));
+      const s = q.reduce((a, v) => a + v, 0); if (!s) return;
+      const w = yi * pb;
+      oppEff += w / q.reduce((a, v) => a + (v / s) ** 2, 0);
+      q.forEach((v, j) => { oppShare[j] += w * v / s; });
+    }));
+    return { share: y.slice(), deckWR, classShare, banShare, topBan, oppEff, oppShare };
+  }
+  // Day one: decks as today, bans settle fully.
+  if (bans) for (let k = 0; k < 60; k++) { const q = banTarget(wrTable(y, p)); p = p.map((r, i) => r.map((v, b) => 0.5 * v + 0.5 * q[i][b])); }
+  const hist = [snapshot(y, p, wrTable(y, p))];
+  for (let t = 1; t <= steps; t++) {
+    const last = hist[hist.length - 1];
+    const tgt = norm(appeal.map((a, i) => Math.exp(a + beta * last.deckWR[i] - beta * 0.5)));
+    y = y.map((v, i) => (1 - lambda) * v + lambda * tgt[i]);
+    let wr = wrTable(y, p);
+    if (bans) for (let k = 0; k < 3; k++) { const q = banTarget(wr); p = p.map((r, i) => r.map((v, b) => 0.5 * v + 0.5 * q[i][b])); wr = wrTable(y, p); }
+    hist.push(snapshot(y, p, wr));
+  }
+  return { classes, hist };
+}
+
+
+</script>
+<script>
+const DEF = { banSavvy: 5, lambda: 0.15, steps: 150 };
+const $ = id => document.getElementById(id);
+const pct = (v, d = 1) => (v * 100).toFixed(d) + '%';
+const NS = 'http://www.w3.org/2000/svg';
+const el = (tag, attrs = {}, parent) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (parent) parent.appendChild(e); return e; };
+const tip = $('tip');
+function showTip(ev, html) { tip.innerHTML = html; tip.hidden = false; const x = Math.min(ev.clientX + 14, innerWidth - tip.offsetWidth - 8); tip.style.left = x + 'px'; tip.style.top = (ev.clientY + 14) + 'px'; }
+function hideTip() { tip.hidden = true; }
+const effN = s => 1 / s.reduce((a, v) => a + v * v, 0);
+const topIdx = arr => { let m = 0; arr.forEach((v, i) => { if (v > arr[m]) m = i; }); return m; };
+let S, D, PREP, si0 = 0;
+let state = { ...DEF }, bi = 3, sel = 'Warlock', sortKey = 'pB', sortDir = -1;
+let RUNS = [], R = null;
+function useSnap(k) {
+  si0 = k; S = DATA.snapshots[k]; D = S.decks;
+  PREP = S.brackets.map(b => prepareBracket(S, b));
+  const nCls = new Set(D.map(d => d.cls)).size;
+  $('src').textContent = `Data: ${S.source}. ${D.length} archetypes, ${nCls} classes, 5 rank brackets.` + (S.absent.length ? ` ${S.absent.length} matchups had too few games and are treated as 50/50.` : '');
+  if (!D.some(d => d.cls === sel)) sel = D[0].cls;
+  $('snapChips').innerHTML = DATA.snapshots.map((s, j) => `<button class="chip" type="button" aria-pressed="${j === k}" data-s="${j}">${s.label}</button>`).join('');
+}
+// The most played deck in the bracket today, used for the headline numbers.
+const topDeck = s => topIdx(s.share);
+
+function run() {
+  RUNS = PREP.map(B => {
+    const ban = simulate(S, B, { steps: state.steps, lambda: state.lambda, banSavvy: state.banSavvy, bans: true });
+    const start = simulate(S, B, { steps: 0, bans: false }).hist[0];
+    return { B, ban, classes: ban.classes, start, day1: ban.hist[0], endB: ban.hist.at(-1) };
+  });
+  render();
+}
+
+function render() {
+  R = RUNS[bi];
+  const { classes, start, day1, endB, B } = R;
+  $('bracketChips').innerHTML = PREP.map((b, k) => `<button class="chip" type="button" aria-pressed="${k === bi}" data-b="${k}">${b.name}</button>`).join('');
+  document.querySelectorAll('.bname').forEach(e => e.textContent = B.name);
+
+  const banI = topIdx(endB.banShare), d1I = topIdx(day1.banShare);
+  const live = endB.share.map((s, i) => s > 0.01);
+  const bestB = topIdx(endB.deckWR.map((w, i) => live[i] ? w : 0)), bestS = topIdx(start.deckWR);
+  const tiles = [
+    { k: `${D[topDeck(start)].name} play rate`, from: pct(start.share[topDeck(start)]), v: pct(endB.share[topDeck(start)]), note: 'The most played deck today, and its share once players have adapted to bans.' },
+    { k: 'Most banned class', v: classes[banI], note: `${pct(endB.banShare[banI], 0)} of players ban it after adapting. On day one, ${pct(day1.banShare[d1I], 0)} ban ${classes[d1I]}.` },
+    { k: 'Best deck win rate', from: pct(start.deckWR[bestS]), v: pct(endB.deckWR[bestB]), note: `Today: ${D[bestS].name}. With bans: ${D[bestB].name} (decks above 1% play rate).` },
+    { k: 'Decks played by 5%+', from: byPlay(start, 0.05).length, v: byPlay(endB, 0.05).length, note: `Tier 2 or better (50%+ win rate, 1%+ played): ${tier2plus(start)} today, ${tier2plus(endB)} with bans.` },
+  ];
+  $('tiles').innerHTML = tiles.map(t => `<div class="tile"><span class="k">${t.k}</span><span class="v">${t.from ? `<span class="from">${t.from} →</span>` : ''}${t.v}</span><span class="note">${t.note}</span></div>`).join('');
+
+  metaTable();
+  bracketTable();
+
+  const order = classes.map((c, i) => i).sort((a, b) => endB.banShare[b] - endB.banShare[a]);
+  $('banText').textContent = `In ${B.name}, ${pct(day1.banShare[d1I], 0)} of players ban ${classes[d1I]} on day one. As decks shift, bans follow the new threats. After adapting, the top bans are ${order.slice(0, 3).map(i => `${classes[i]} (${pct(endB.banShare[i], 0)})`).join(', ')}.`;
+  barChart($('banChart'), order.map(i => ({ label: classes[i], a: endB.banShare[i], b: day1.banShare[i] })));
+
+  $('classChips').innerHTML = classes.map(c => `<button class="chip" type="button" aria-pressed="${c === sel}" data-c="${c}">${c}</button>`).join('');
+  const si = classes.indexOf(sel);
+  $('lgA').textContent = sel + ' with bans'; $('lgB').textContent = sel + ' today';
+  $('classText').textContent = `${sel} is ${pct(start.classShare[si])} of ${B.name} games today and ${pct(endB.classShare[si])} once players have adapted to bans.`;
+  lineChart($('lineChart'), si);
+  table();
+}
+
+const TIERS = [['Tier 1', 0.53, 1], ['Tier 2', 0.50, 0.53], ['Tier 3', 0.47, 0.50], ['Tier 4', 0, 0.47]];
+const byPlay = (s, min) => D.map((d, i) => i).filter(i => s.share[i] >= min).sort((a, b) => s.share[b] - s.share[a]);
+const byTier = (s, lo, hi) => D.map((d, i) => i).filter(i => s.deckWR[i] >= lo && s.deckWR[i] < hi).sort((a, b) => s.deckWR[b] - s.deckWR[a]);
+const tier2plus = s => byTier(s, 0.50, 1).filter(i => s.share[i] >= 0.01).length;
+const top3 = a => a.slice().sort((x, y) => y - x).slice(0, 3).reduce((s, v) => s + v, 0);
+function metaTable() {
+  const { start, endB } = R;
+  const names = (ids, s, f) => ids.length ? ids.map(i => `${D[i].name} <span class="est">${f(s, i)}</span>`).join(', ') : '<span class="est">none</span>';
+  const playF = (s, i) => pct(s.share[i], 0), wrF = (s, i) => pct(s.deckWR[i], 1);
+  const rows = [
+    ['Played by 5%+', byPlay(start, 0.05), byPlay(endB, 0.05), playF],
+    ['Played by 2%+', byPlay(start, 0.02), byPlay(endB, 0.02), playF],
+    ...TIERS.map(([t, lo, hi], k) => [`${t} <span class="est">${hi === 1 ? '53%+' : lo === 0 ? 'under 47%' : pct(lo, 0) + '–' + pct(hi, 0)}</span>`, byTier(start, lo, hi), byTier(endB, lo, hi), wrF, k === 0]),
+  ];
+  $('metaTable').innerHTML = `<thead><tr><th class="l">Count</th><th>Today</th><th>With bans</th><th class="l">Decks with bans</th></tr></thead><tbody>${rows.map(([lbl, a, b, f, sep]) =>
+    `<tr class="${sep ? 'sep' : ''}"><td class="name">${lbl}</td><td class="big">${a.length}</td><td class="big">${b.length}${b.length !== a.length ? ` <span class="${b.length > a.length ? 'd-up' : 'd-down'}" style="font:500 12px var(--mono)">${b.length > a.length ? '+' : '−'}${Math.abs(b.length - a.length)}</span>` : ''}</td><td class="names">${names(b, endB, f)}</td></tr>`).join('')}
+    <tr class="sep"><td class="name">Your games vs ${D[topDeck(start)].name}</td><td class="big">${pct(start.oppShare[topDeck(start)], 0)}</td><td class="big">${pct(endB.oppShare[topDeck(start)], 0)}</td><td class="names">How often a typical player meets today's most played deck, after both players' bans.</td></tr>
+    <tr><td class="name">Your games vs the 3 most common decks</td><td class="big">${pct(top3(start.oppShare), 0)}</td><td class="big">${pct(top3(endB.oppShare), 0)}</td><td class="names">Lower means fewer repeat matchups.</td></tr>
+    <tr><td class="name">Different decks you meet</td><td class="big">${start.oppEff.toFixed(1)}</td><td class="big">${endB.oppEff.toFixed(1)}</td><td class="names">Effective number of distinct opponents per player. Your own ban removes a class, which offsets the wider ladder.</td></tr>
+    <tr class="sep"><td class="name">Effective number of decks</td><td class="big">${effN(start.share).toFixed(1)}</td><td class="big">${effN(endB.share).toFixed(1)}</td><td class="names">How many equally played decks would give the same variety.</td></tr></tbody>`;
+}
+
+function bracketTable() {
+  const top = RUNS.at(-1).B.beta;
+  $('pickText').textContent = `How strongly play rate follows win rate in each bracket, measured from this snapshot's data. "Today" throughout means the snapshot as vS recorded it. Top 1K Legend players reward each extra win-rate point about ${(top / RUNS[0].B.beta).toFixed(1)}× as strongly as Platinum players, so they swarm the best deck and react hardest when bans change which deck is best.`;
+  $('bracketTable').innerHTML = `<thead><tr><th class="l">Bracket</th><th>Pull of +5% win rate</th><th>Most banned</th><th class="l">Top deck play rate<br>today → bans</th><th>Decks played 5%+<br>today → bans</th><th>Tier 2+ decks<br>today → bans</th><th>Effective decks<br>today → bans</th></tr></thead><tbody>${RUNS.map((r, k) => {
+    const banI = topIdx(r.endB.banShare);
+    return `<tr class="${k === bi ? 'cur' : ''}" data-b="${k}"><td class="name">${r.B.name}</td><td>×${Math.exp(r.B.beta * 0.05).toFixed(2)}</td><td class="l">${r.classes[banI]} <span class="est">${pct(r.endB.banShare[banI], 0)}</span></td><td class="l">${D[topDeck(r.start)].name} <span class="est">${pct(r.start.share[topDeck(r.start)])} → ${pct(r.endB.share[topDeck(r.start)])}</span></td><td>${byPlay(r.start, 0.05).length} → ${byPlay(r.endB, 0.05).length}</td><td>${tier2plus(r.start)} → ${tier2plus(r.endB)}</td><td>${effN(r.start.share).toFixed(1)} → ${effN(r.endB.share).toFixed(1)}</td></tr>`;
+  }).join('')}</tbody>`;
+}
+
+function barChart(host, rows) {
+  const W = host.clientWidth || 800, rowH = 30, L = 118, Rr = 56, T = 6;
+  const H = T + rows.length * rowH + 22;
+  const max = Math.max(0.05, ...rows.map(r => Math.max(r.a, r.b)));
+  const nice = Math.ceil(max * 10) / 10;
+  const x = v => L + (W - L - Rr) * v / nice;
+  host.innerHTML = '';
+  const s = el('svg', { viewBox: `0 0 ${W} ${H}`, width: '100%', role: 'img', 'aria-label': 'Ban share by class' }, host);
+  for (let k = 0; k <= 4; k++) { const t = nice * k / 4;
+    el('line', { x1: x(t), x2: x(t), y1: T, y2: H - 20, stroke: 'var(--grid)' }, s);
+    el('text', { x: x(t), y: H - 5, 'text-anchor': 'middle' }, s).textContent = Math.round(t * 100) + '%';
+  }
+  rows.forEach((r, k) => {
+    const y = T + k * rowH;
+    el('text', { x: L - 10, y: y + rowH / 2 + 4, 'text-anchor': 'end', class: 'lbl' }, s).textContent = r.label;
+    el('rect', { x: L, y: y + 5, width: Math.max(0, x(r.b) - L), height: 8, rx: 2, fill: 'var(--accent-soft)' }, s);
+    el('rect', { x: L, y: y + 15, width: Math.max(0, x(r.a) - L), height: 10, rx: 2, fill: 'var(--accent)' }, s);
+    el('text', { x: x(Math.max(r.a, r.b)) + 6, y: y + rowH / 2 + 5, class: 'val' }, s).textContent = pct(r.a, 0);
+    const hit = el('rect', { x: 0, y, width: W, height: rowH, fill: 'transparent' }, s);
+    hit.addEventListener('mousemove', ev => showTip(ev, `<b>${r.label}</b><br>Banned by ${pct(r.a)} after adapting<br>Banned by ${pct(r.b)} on day one`));
+    hit.addEventListener('mouseleave', hideTip);
+  });
+}
+
+function lineChart(host, si) {
+  const { ban, classes, start } = R;
+  const W = host.clientWidth || 800, H = 300, L = 44, Rr = 16, T = 12, B = 28;
+  const n = ban.hist.length - 1;
+  const nice = Math.ceil(Math.max(...ban.hist.flatMap(h => h.classShare), ...start.classShare) * 20) / 20;
+  const x = t => L + (W - L - Rr) * t / n, y = v => T + (H - T - B) * (1 - v / nice);
+  host.innerHTML = '';
+  const s = el('svg', { viewBox: `0 0 ${W} ${H}`, width: '100%', role: 'img', 'aria-label': 'Class share over adaptation rounds' }, host);
+  const ticks = nice <= 0.4 ? 0.05 : 0.1;
+  for (let v = 0; v <= nice + 1e-9; v += ticks) {
+    el('line', { x1: L, x2: W - Rr, y1: y(v), y2: y(v), stroke: v === 0 ? 'var(--axis)' : 'var(--grid)' }, s);
+    el('text', { x: L - 6, y: y(v) + 4, 'text-anchor': 'end' }, s).textContent = Math.round(v * 100) + '%';
+  }
+  const step = n <= 60 ? 10 : n <= 150 ? 20 : 50;
+  for (let t = 0; t <= n - step / 2; t += step) el('text', { x: x(t), y: H - 8, 'text-anchor': 'middle' }, s).textContent = t;
+  el('text', { x: W - Rr, y: H - 8, 'text-anchor': 'end' }, s).textContent = 'rounds →';
+  const path = c => ban.hist.map((h, t) => `${t ? 'L' : 'M'}${x(t).toFixed(1)},${y(h.classShare[c]).toFixed(1)}`).join('');
+  classes.forEach((c, k) => { if (k !== si) el('path', { d: path(k), fill: 'none', stroke: 'var(--axis)', 'stroke-width': 1.25 }, s); });
+  el('line', { x1: L, x2: W - Rr, y1: y(start.classShare[si]), y2: y(start.classShare[si]), stroke: 'var(--compare)', 'stroke-width': 2, 'stroke-dasharray': '5 4' }, s);
+  el('path', { d: path(si), fill: 'none', stroke: 'var(--accent)', 'stroke-width': 2.5 }, s);
+  el('circle', { cx: x(n), cy: y(ban.hist[n].classShare[si]), r: 4, fill: 'var(--accent)', stroke: 'var(--surface)', 'stroke-width': 2 }, s);
+  const cross = el('line', { y1: T, y2: H - B, stroke: 'var(--axis)', visibility: 'hidden' }, s);
+  const hit = el('rect', { x: L, y: T, width: W - L - Rr, height: H - T - B, fill: 'transparent' }, s);
+  hit.addEventListener('mousemove', ev => {
+    const r = s.getBoundingClientRect(); const px = (ev.clientX - r.left) * W / r.width;
+    const t = Math.max(0, Math.min(n, Math.round((px - L) / (W - L - Rr) * n)));
+    cross.setAttribute('x1', x(t)); cross.setAttribute('x2', x(t)); cross.setAttribute('visibility', 'visible');
+    const top = classes.map((c, k) => [c, ban.hist[t].classShare[k]]).sort((a, b) => b[1] - a[1]).slice(0, 3);
+    showTip(ev, `Round ${t}<br><b>${classes[si]}</b> ${pct(ban.hist[t].classShare[si])} (today ${pct(start.classShare[si])})<br><span style="opacity:.7">Top: ${top.map(a => a[0] + ' ' + pct(a[1], 0)).join(', ')}</span>`);
+  });
+  hit.addEventListener('mouseleave', () => { cross.setAttribute('visibility', 'hidden'); hideTip(); });
+}
+
+const COLS = [
+  { k: 'name', t: 'Deck', l: true },
+  { k: 'p0', t: 'Play rate<br>today' },
+  { k: 'pB', t: 'Play rate<br>with bans' },
+  { k: 'w0', t: 'Win rate<br>today' },
+  { k: 'w1', t: 'Win rate<br>bans, day one' },
+  { k: 'wB', t: 'Win rate<br>bans, adapted' },
+  { k: 'ban', t: 'What its players ban', l: true },
+];
+function table() {
+  const { start, day1, endB } = R;
+  const rows = D.map((d, i) => ({ d, name: d.name, p0: start.share[i], pB: endB.share[i], w0: start.deckWR[i], w1: day1.deckWR[i], wB: endB.deckWR[i], ban: endB.topBan[i].cls, banP: endB.topBan[i].p }));
+  rows.sort((a, b) => (typeof a[sortKey] === 'string' ? a[sortKey].localeCompare(b[sortKey]) : a[sortKey] - b[sortKey]) * sortDir);
+  const delta = (v, ref) => { const d = (v - ref) * 100; if (Math.abs(d) < 0.05) return ''; return ` <span class="${d > 0 ? 'd-up' : 'd-down'}">${d > 0 ? '▲' : '▼'}${Math.abs(d).toFixed(1)}</span>`; };
+  $('deckTable').innerHTML = `<thead><tr>${COLS.map(c => `<th class="${c.l ? 'l' : ''}" data-k="${c.k}" ${c.k === sortKey ? `aria-sort="${sortDir > 0 ? 'ascending' : 'descending'}"` : ''}>${c.t}</th>`).join('')}</tr></thead><tbody>${rows.map(r => `<tr>
+    <td class="name">${r.name}<span class="cls">${r.d.cls}</span></td>
+    <td>${pct(r.p0)}</td>
+    <td>${pct(r.pB)}${delta(r.pB, r.p0)}</td>
+    <td>${pct(r.w0)}</td>
+    <td>${pct(r.w1)}${delta(r.w1, r.w0)}</td>
+    <td>${pct(r.wB)}${delta(r.wB, r.w0)}</td>
+    <td class="l">${r.ban} <span class="est">${pct(r.banP, 0)} of them</span></td></tr>`).join('')}</tbody>`;
+}
+
+$('deckTable').addEventListener('click', e => { const th = e.target.closest('th'); if (!th) return; const k = th.dataset.k; if (sortKey === k) sortDir = -sortDir; else { sortKey = k; sortDir = k === 'name' || k === 'ban' ? 1 : -1; } table(); });
+$('classChips').addEventListener('click', e => { const b = e.target.closest('.chip'); if (!b) return; sel = b.dataset.c; render(); });
+$('snapChips').addEventListener('click', e => { const b = e.target.closest('.chip'); if (!b) return; useSnap(+b.dataset.s); run(); });
+$('bracketChips').addEventListener('click', e => { const b = e.target.closest('.chip'); if (!b) return; bi = +b.dataset.b; render(); });
+$('bracketTable').addEventListener('click', e => { const tr = e.target.closest('tr[data-b]'); if (!tr) return; bi = +tr.dataset.b; render(); });
+const knobs = [['kSavvy', 'banSavvy', 'oSavvy', v => '×' + v.toFixed(2)], ['kLambda', 'lambda', 'oLambda', v => pct(v, 0) + ' per round'], ['kSteps', 'steps', 'oSteps', v => v]];
+function syncKnobs() { knobs.forEach(([id, k, o, f]) => { $(id).value = state[k]; $(o).textContent = f(state[k]); }); }
+let pending = 0;
+knobs.forEach(([id, k, o, f]) => $(id).addEventListener('input', e => { state[k] = +e.target.value; $(o).textContent = f(state[k]); cancelAnimationFrame(pending); pending = requestAnimationFrame(run); }));
+$('reset').addEventListener('click', () => { state = { ...DEF }; syncKnobs(); run(); });
+let rz = 0; addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(render, 150); });
+useSnap(0); syncKnobs(); run();
+
+</script>
+
+</body>
+</html>
